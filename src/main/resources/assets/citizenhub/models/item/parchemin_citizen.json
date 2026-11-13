@@ -1,0 +1,18 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "citizenhub:item/parchemin_citizen"
+  },
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [-90, 0, 90],
+      "translation": [0, 3, 1.5],
+      "scale": [0.85, 0.85, 0.85]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [-90, 0, -90],
+      "translation": [0, 3, 1.5],
+      "scale": [0.85, 0.85, 0.85]
+    }
+  }
+}
