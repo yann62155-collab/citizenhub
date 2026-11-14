@@ -2,7 +2,11 @@ name: Compiler le JAR
 
 on:
   push:
+    branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -19,3 +23,13 @@ jobs:
         with:
           name: citizenhub-jar
           path: build/libs/*.jar
+      - name: Publier le .jar
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Citizen Hub (build ${{ github.run_number }})
+          body: |
+            À mettre dans le dossier mods du serveur ET dans Citizen Updater (joueurs PC).
+            Les joueurs console (Citizen Bedrock) n'ont rien à installer : /citizen s'ouvre en menu Xbox.
+          files: build/libs/citizenhub-*.jar
+          make_latest: true

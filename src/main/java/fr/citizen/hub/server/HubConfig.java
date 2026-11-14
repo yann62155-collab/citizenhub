@@ -160,6 +160,14 @@ public final class HubConfig {
         d.sections.add(new Section("Livre des recettes", "minecraft:crafting_table", "", false,
                 "Toutes les recettes du royaume. Rappel RP : artefacts, armures, filets, boîtes aux lettres, lettres, cartons et affiches se font chez le forgeron ; portes et clés uniquement chez le menuisier ; nourriture et bière à la taverne ou au restaurant ; la pêche est réservée aux pêcheurs.",
                 exe("Ouvrir le livre des recettes", "craft", "Recherche, catégories et onglet Animaux.")));
+        d.sections.add(new Section("Réalisme", "minecraft:leather_chestplate", "citizenrealisme", false,
+                "Poids et encombrement (plus tu portes, plus tu ralentis), cases limitées et sacs, crafts avec durée, outils d'artisan et taux de réussite, enchantement par rituel avec catalyseurs.",
+                exe("Mon équipement", "realisme", "Poids porté, sac équipé et nombre de cases utilisables."),
+                exe("Comment fabriquer ?", "realisme craft", "Durée des crafts, taux de réussite et outils d'artisan (marteau, scie, aiguille)."),
+                exe("Rituel d'enchantement", "realisme rituel", "Catalyseurs demandés, taux de réussite et risques d'échec."),
+                exe("Retirer mon sac", "realisme sac retirer", "Retire le sac équipé (il doit être vide)."),
+                exeAdmin("Recharger les réglages", "realisme admin recharger", "Relit realisme.json sans redémarrer."),
+                sugAdmin("Donner un objet", "realisme admin donner ", "Objets : marteau, scie, aiguille, sacoche ou sacados, puis le joueur (facultatif).")));
         d.sections.add(new Section("Chasse & pêche", "minecraft:iron_sword", "citizenchasse", false,
                 "Les bêtes tuées laissent une carcasse : transporte-la avec la touche Alt, puis vide-la et découpe-la sur une table de boucher avec un couteau. Plus la bête est lourde, plus elle donne de viande. Pêche au filet ou sur supports de canne, poissons à tailler en filets. Pièges à lapin et filets demandent des appâts."));
         d.sections.add(new Section("Menuiserie", "minecraft:oak_door", "citizenmenuiserie", false,

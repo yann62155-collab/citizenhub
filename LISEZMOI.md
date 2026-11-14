@@ -3,9 +3,8 @@
 NeoForge 21.1.215 · Minecraft 1.21.1 · Java 21 · mod ID `citizenhub`
 
 ## Compiler
-```
-gradlew build
-```
+GitHub compile tout seul à chaque envoi : le .jar est dans **Releases** du dépôt.
+Sur PC : `gradlew build`.
 JAR : `build/libs/citizenhub-1.0.0.jar` → à mettre côté serveur ET joueurs (via Citizen Updater).
 
 ## Ce que fait le mod
@@ -17,6 +16,8 @@ JAR : `build/libs/citizenhub-1.0.0.jar` → à mettre côté serveur ET joueurs 
 - Le parchemin est rangé dès que le menu se ferme (Échap, E, autre menu, déconnexion, mort, changement de dimension).
 - Message de bienvenue à chaque connexion avec un bouton cliquable [Ouvrir le parchemin].
 - `/citizen reload` (op) : recharge la config sans redémarrer.
+- Joueurs console (Citizen Bedrock) : `/citizen` s'ouvre en menu Xbox natif (sections → commandes).
+- Joueurs PC sans le mod : `/citizen` affiche une liste cliquable dans le chat. Le mod n'empêche personne de se connecter.
 
 ## Configuration : `config/citizen/citizen_hub.json`
 Créé au premier démarrage du serveur.

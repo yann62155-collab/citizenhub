@@ -49,7 +49,7 @@ public final class HubServerEvents {
     public static void onStartTracking(PlayerEvent.StartTracking event) {
         if (event.getTarget() instanceof ServerPlayer target
                 && event.getEntity() instanceof ServerPlayer watcher
-                && HubServer.isReading(target)) {
+                && HubServer.isReading(target) && HubServer.modded(watcher)) {
             PacketDistributor.sendToPlayer(watcher, new ReadingStatePayload(target.getId(), true));
         }
     }

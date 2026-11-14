@@ -9,7 +9,9 @@ public final class HubNetwork {
     private HubNetwork() {}
 
     public static void register(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar r = event.registrar("1");
+        // Optionnel : les joueurs sans le mod (console via Citizen Bedrock, Java vanilla) peuvent quand même
+        // se connecter ; ils reçoivent /citizen sous forme de menu Bedrock ou de liste cliquable dans le chat.
+        PayloadRegistrar r = event.registrar("1").optional();
 
         // Les handlers client passent par des lambdas : la classe client n'est chargée
         // que si le paquet est reçu, donc jamais sur le serveur dédié.
