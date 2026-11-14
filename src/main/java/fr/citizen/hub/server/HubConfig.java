@@ -168,6 +168,18 @@ public final class HubConfig {
                 exe("Retirer mon sac", "realisme sac retirer", "Retire le sac équipé (il doit être vide)."),
                 exeAdmin("Recharger les réglages", "realisme admin recharger", "Relit realisme.json sans redémarrer."),
                 sugAdmin("Donner un objet", "realisme admin donner ", "Objets : marteau, scie, aiguille, sacoche ou sacados, puis le joueur (facultatif).")));
+        d.sections.add(new Section("Quêtes", "minecraft:writable_book", "citizenquetes", false,
+                "Des messagers du château parcourent le royaume et proposent des quêtes. Ta quête en cours s'affiche à droite de l'écran ; la récompense est virée sur ton compte en banque.",
+                exe("Ma quête", "quete", "Voir la quête en cours et son avancement."),
+                sug("Abandonner ma quête", "quete abandonner", "Valide avec Entrée dans le chat pour confirmer l'abandon."),
+                exeAdmin("Aide quêtes (staff)", "quetes", "Toutes les commandes d'administration des quêtes."),
+                exeAdmin("Prochain messager", "quetes prochain", "Heure du prochain messager et messagers en route."),
+                sugAdmin("Envoyer un messager", "quetes envoyer ", "Vers toi, ou ajoute le nom d'un joueur."),
+                sugAdmin("Annuler la quête d'un joueur", "quetes annuler ", "Ajoute le nom du joueur."),
+                sugAdmin("Définir le château", "quetes chateau", "Le château devient ta position actuelle (valide avec Entrée)."),
+                sugAdmin("Ajouter un lieu de ronde", "quetes lieu ajouter ", "Lieu à ta position : ajoute son nom."),
+                exeAdmin("Lieux de ronde", "quetes lieu liste", "Château et lieux de ronde enregistrés."),
+                exeAdmin("Recharger les quêtes", "quetes recharger", "Relit config/citizenquetes/*.json.")));
         d.sections.add(new Section("Chasse & pêche", "minecraft:iron_sword", "citizenchasse", false,
                 "Les bêtes tuées laissent une carcasse : transporte-la avec la touche Alt, puis vide-la et découpe-la sur une table de boucher avec un couteau. Plus la bête est lourde, plus elle donne de viande. Pêche au filet ou sur supports de canne, poissons à tailler en filets. Pièges à lapin et filets demandent des appâts."));
         d.sections.add(new Section("Menuiserie", "minecraft:oak_door", "citizenmenuiserie", false,
