@@ -1,4 +1,4 @@
-name: Compiler le JAR
+name: Compiler et vérifier CITIZEN MENU
 
 on:
   push:
@@ -18,19 +18,48 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v4
-      - run: chmod +x gradlew && ./gradlew build --no-daemon
+      - name: Compiler le mod
+        run: chmod +x gradlew && ./gradlew build --no-daemon
+      - name: Préparer l'EULA pour le test local CI
+        run: |
+          mkdir -p run/server
+          printf 'eula=true\n' > run/server/eula.txt
+      - name: Test de démarrage du serveur dédié
+        shell: bash
+        run: |
+          set +e
+          timeout --signal=TERM --kill-after=15s 120s ./gradlew runServer --no-daemon
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ] && [ "$status" -ne 124 ] && [ "$status" -ne 143 ]; then
+            echo "Le serveur dédié s'est arrêté avec le code $status"
+            exit "$status"
+          fi
+          LOG="run/server/logs/latest.log"
+          if [ ! -f "$LOG" ]; then
+            echo "Le journal du serveur dédié est introuvable : $LOG"
+            find run -maxdepth 4 -type f -name '*.log' -print || true
+            exit 1
+          fi
+          if ! grep -E 'Done \(' "$LOG"; then
+            echo "Le serveur n'a pas atteint l'état Done."
+            tail -n 120 "$LOG"
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         with:
-          name: citizenhub-jar
+          name: citizen-menu-jar
           path: build/libs/*.jar
-      - name: Publier le .jar
+          if-no-files-found: error
+      - name: Publier le .jar sur une version principale
         if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.run_number }}
-          name: Citizen Hub (build ${{ github.run_number }})
+          name: CITIZEN MENU (build ${{ github.run_number }})
           body: |
-            À mettre dans le dossier mods du serveur ET dans Citizen Updater (joueurs PC).
-            Les joueurs console (Citizen Bedrock) n'ont rien à installer : /citizen s'ouvre en menu Xbox.
+            CITIZEN MENU pour Minecraft 1.21.1 / NeoForge 21.1.215 / Java 21.
+            Installer le JAR côté client et côté serveur.
+            CitizenVoice n'est pas modifié.
           files: build/libs/citizenhub-*.jar
           make_latest: true
