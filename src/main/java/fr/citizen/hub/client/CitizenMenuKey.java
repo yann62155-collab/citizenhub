@@ -14,7 +14,7 @@ import org.lwjgl.glfw.GLFW;
 /**
  * Raccourci principal de CITIZEN MENU.
  *
- * La touche N est volontairement distincte des raccourcis de CitizenVoice :
+ * La touche C est le raccourci de CITIZEN MENU des raccourcis de CitizenVoice :
  * ce mod ne modifie et ne remplace aucun raccourci vocal.
  */
 @EventBusSubscriber(modid = CitizenHub.MODID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
@@ -22,7 +22,7 @@ public final class CitizenMenuKey {
     public static final KeyMapping OPEN_MENU = new KeyMapping(
             "key.citizenhub.open",
             InputConstants.Type.KEYSYM,
-            GLFW.GLFW_KEY_N,
+            GLFW.GLFW_KEY_C,
             "key.categories.citizenhub"
     );
 
