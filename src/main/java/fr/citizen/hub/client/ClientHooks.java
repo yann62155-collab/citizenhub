@@ -15,7 +15,7 @@ public final class ClientHooks {
     static final Set<Integer> READING = ConcurrentHashMap.newKeySet();
 
     public static void openHub(OpenHubPayload payload) {
-        Minecraft.getInstance().setScreen(new HubScreen(payload));
+        Minecraft.getInstance().setScreen(new DashboardScreen(payload));
     }
 
     public static void readingState(ReadingStatePayload payload) {

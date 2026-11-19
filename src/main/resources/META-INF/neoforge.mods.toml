@@ -5,10 +5,10 @@ license="All Rights Reserved"
 [[mods]]
 modId="citizenhub"
 version="1.2.0"
-displayName="Citizen Hub"
+displayName="CITIZEN MENU"
 authors="Ishawakiii"
 description='''
-Commande /citizen : un parchemin qui regroupe tous les menus et commandes des mods Citizen.
+Interface centrale des mods Citizen : tableau de bord graphique, accès direct aux menus des modules joueurs et intégrations contrôlées par permissions.
 '''
 
 [[dependencies.citizenhub]]
