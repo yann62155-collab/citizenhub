@@ -2,7 +2,7 @@
 
 ## Objectif produit
 
-Transformer CitizenHub en tableau de bord graphique central. La touche d'ouverture souhaitée est **M**. Depuis le tableau de bord, un clic sur une tuile doit ouvrir directement l'écran natif du mod ciblé : aucun écran de commandes ou sous-menu intermédiaire.
+Transformer CitizenHub en tableau de bord graphique central. La touche d'ouverture retenue est **N**. Depuis le tableau de bord, un clic sur une tuile doit ouvrir directement l'écran natif du mod ciblé : aucun écran de commandes ou sous-menu intermédiaire.
 
 Le projet conserve l'identifiant technique `citizenhub` afin de préserver les configurations et installations existantes. Le nom affiché devient **CITIZEN MENU**.
 
@@ -16,7 +16,8 @@ Le projet conserve l'identifiant technique `citizenhub` afin de préserver les c
 - Les actions et autorisations sont vérifiées côté serveur.
 - Les modules purement administratifs/techniques sont exclus du menu joueur.
 - **CitizenAura est réservé aux administrateurs** et ne doit jamais être visible par un joueur ordinaire.
-- Les raccourcis des autres mods ne doivent pas être modifiés sans décision explicite.
+- **Ne pas modifier CitizenVoice** : son raccourci M, ses réglages et tous ses autres raccourcis restent inchangés.
+- Le raccourci CITIZEN MENU est N et ne doit pas entrer en conflit avec les commandes vocales existantes.
 
 ## Intégrations confirmées par audit des dépôts
 
@@ -38,8 +39,8 @@ Le projet conserve l'identifiant technique `citizenhub` afin de préserver les c
 
 ### Citizen Voice
 
-- Le mod expose ses réglages via V, le push-to-talk via Verr. Maj, le chuchotement via B et la sourdine via M.
-- Le raccourci M de Citizen Voice entre en conflit potentiel avec le raccourci M demandé pour Citizen Menu. Aucun raccourci Voice ne doit être modifié sans validation explicite.
+- Les raccourcis de Citizen Voice restent strictement inchangés.
+- Le raccourci M de Citizen Voice est conservé ; CITIZEN MENU utilise N.
 
 ## Architecture cible
 
@@ -53,14 +54,16 @@ Le projet conserve l'identifiant technique `citizenhub` afin de préserver les c
 ## Première tranche de réalisation
 
 - Renommer le nom affiché en CITIZEN MENU sans changer le mod ID.
+- Ajouter le raccourci client N, qui réutilise la commande serveur existante `/citizen` et ses contrôles de permission.
+- Conserver intégralement CitizenVoice et ses raccourcis.
 - Remplacer progressivement l'ancienne présentation parchemin par un tableau de bord à tuiles.
-- Ajouter l'ouverture du tableau de bord par raccourci M après résolution du conflit de touche avec Citizen Voice.
 - Ajouter les points d'entrée natifs pour Economy et Guilds.
 - Ajouter les autres modules après audit de leurs écrans et API réels.
 
 ## Critères d'acceptation
 
-- M ouvre le tableau de bord et ne déclenche pas une autre action involontaire.
+- N ouvre le tableau de bord et ne déclenche pas une autre action involontaire.
+- M continue de fonctionner exactement comme avant pour CitizenVoice.
 - Un clic sur Guildes ouvre directement l'écran Guilds natif.
 - Un clic sur Économie ouvre directement l'écran Economy natif.
 - Aucun second clic ni commande à saisir n'est nécessaire.
