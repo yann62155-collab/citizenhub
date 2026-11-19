@@ -57,6 +57,16 @@ public final class HubServer {
             if (entries.isEmpty() && !modPresent) continue; // rien d'utile à montrer
             sections.add(new OpenHubPayload.Section(s.nom, s.icone, s.description, s.admin, entries));
         }
+
+        // Compatibilité avec les configurations existantes créées avant l'ajout de Guilds.
+        // Le module est détecté automatiquement même si l'ancien JSON ne contient pas encore sa section.
+        boolean guildsConfigured = cfg.sections.stream().anyMatch(section ->
+                "citizenguilds".equalsIgnoreCase(section.mod));
+        if (!guildsConfigured && ModList.get().isLoaded("citizenguilds")) {
+            sections.add(new OpenHubPayload.Section("Guildes", "minecraft:shield",
+                    "Gérez votre guilde, vos membres, votre réserve commune et vos donjons.",
+                    false, List.of()));
+        }
         return sections;
     }
 
