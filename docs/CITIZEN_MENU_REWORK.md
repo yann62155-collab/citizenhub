@@ -42,6 +42,20 @@ Le projet conserve l'identifiant technique `citizenhub` afin de préserver les c
 - Les raccourcis de Citizen Voice restent strictement inchangés.
 - Le raccourci M de Citizen Voice est conservé ; CITIZEN MENU utilise N.
 
+## État de développement
+
+- Le raccourci client N est ajouté ; il ouvre le point d'entrée serveur existant `/citizen`.
+- Le tableau de bord sombre CITIZEN MENU remplace maintenant l'ancien écran côté client.
+- Les tuiles Guildes et Économie sont conditionnées à la présence du mod côté client **et** à sa disponibilité dans les modules annoncés par le serveur.
+- Guildes ouvre directement `GuildManagementScreen`, sans dépendance de compilation entre les deux mods.
+- Économie ouvre directement sa vue principale native via son point d'entrée officiel `/ceconomy`.
+- La fermeture du tableau de bord notifie le serveur pour arrêter proprement l'état de lecture.
+- CitizenVoice n'a reçu aucune modification.
+- CitizenAura n'est pas proposé dans ce tableau de bord joueur.
+- La compilation Gradle sur GitHub est activée pour les branches `feature/**` ; la publication d'une release reste limitée à `main`.
+
+La compilation et les tests en jeu de la dernière révision doivent être confirmés avant de distribuer le JAR.
+
 ## Architecture cible
 
 1. **Module Registry** : détecte les modules compatibles réellement présents.
