@@ -1,8 +1,10 @@
 package fr.citizen.hub.client;
 
+import fr.citizen.hub.network.CloseHubPayload;
 import fr.citizen.hub.network.OpenHubPayload;
 import fr.citizen.hub.network.ReadingStatePayload;
 import net.minecraft.client.Minecraft;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -15,7 +17,7 @@ public final class ClientHooks {
     static final Set<Integer> READING = ConcurrentHashMap.newKeySet();
 
     public static void openHub(OpenHubPayload payload) {
-        Minecraft.getInstance().setScreen(new HubScreen(payload));
+        Minecraft.getInstance().setScreen(new DashboardScreen());
     }
 
     public static void readingState(ReadingStatePayload payload) {
