@@ -36,6 +36,7 @@ public final class DashboardScreen extends Screen {
     private int panelWidth;
     private int panelHeight;
     private int page;
+    private int animationTick;
     private List<ModuleTile> tiles = List.of();
     private final OpenHubPayload payload;
 
@@ -45,6 +46,12 @@ public final class DashboardScreen extends Screen {
     public DashboardScreen(OpenHubPayload payload) {
         super(Component.literal("CITIZEN MENU"));
         this.payload = payload;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        animationTick++;
     }
 
     @Override
@@ -66,7 +73,7 @@ public final class DashboardScreen extends Screen {
                 .bounds(left + panelWidth - 112, top + 22, 84, 24).build());
 
         int first = page * 4;
-        int cardWidth = Math.max(150, (panelWidth - 72) / 2);
+        int cardWidth = Math.max(100, (panelWidth - 64) / 2);
         for (int slot = 0; slot < 4 && first + slot < tiles.size(); slot++) {
             ModuleTile tile = tiles.get(first + slot);
             int column = slot % 2;
@@ -188,6 +195,9 @@ public final class DashboardScreen extends Screen {
         graphics.fill(left, top, left + panelWidth, top + panelHeight, BACKGROUND);
         graphics.renderOutline(left, top, panelWidth, panelHeight, LINE);
         graphics.fill(left + 1, top + 1, left + panelWidth - 1, top + 4, GOLD);
+        int glowAlpha = 90 + (int) (45.0 * (1.0 + Math.sin(animationTick * 0.08)));
+        graphics.fill(left + panelWidth - 132, top + 1, left + panelWidth - 28, top + 4,
+                (glowAlpha << 24) | 0x00E3BD73);
 
         graphics.drawString(font, "CITIZEN", left + 28, top + 22, GOLD, false);
         graphics.drawString(font, "MENU", left + 28, top + 40, WHITE, false);
