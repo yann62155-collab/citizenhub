@@ -22,20 +22,20 @@ jobs:
         run: chmod +x gradlew && ./gradlew build --no-daemon
       - name: Préparer l'EULA pour le test local CI
         run: |
-          mkdir -p run/server
-          printf 'eula=true\n' > run/server/eula.txt
+          mkdir -p run
+          printf 'eula=true\n' > run/eula.txt
       - name: Test de démarrage du serveur dédié
         shell: bash
         run: |
           set +e
-          timeout --signal=TERM --kill-after=15s 120s ./gradlew runServer --no-daemon
+          timeout --signal=TERM --kill-after=15s 60s ./gradlew runServer --no-daemon
           status=$?
           set -e
           if [ "$status" -ne 0 ] && [ "$status" -ne 124 ] && [ "$status" -ne 143 ]; then
             echo "Le serveur dédié s'est arrêté avec le code $status"
             exit "$status"
           fi
-          LOG="run/server/logs/latest.log"
+          LOG="run/logs/latest.log"
           if [ ! -f "$LOG" ]; then
             echo "Le journal du serveur dédié est introuvable : $LOG"
             find run -maxdepth 4 -type f -name '*.log' -print || true
