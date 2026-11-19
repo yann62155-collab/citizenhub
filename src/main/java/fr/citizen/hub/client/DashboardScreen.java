@@ -1,12 +1,14 @@
 package fr.citizen.hub.client;
 
 import fr.citizen.hub.CitizenHub;
+import fr.citizen.hub.network.CloseHubPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * Tableau de bord CITIZEN MENU.
@@ -44,7 +46,6 @@ public final class DashboardScreen extends Screen {
         top = (height - panelHeight) / 2;
 
         int cardWidth = Math.min(290, (panelWidth - 72) / 2);
-        int cardHeight = 116;
         int gap = 18;
         int firstX = left + (panelWidth - (cardWidth * 2 + gap)) / 2;
         int firstY = top + 112;
@@ -58,7 +59,7 @@ public final class DashboardScreen extends Screen {
                     .bounds(firstX, firstY + 78, cardWidth, 28).build());
         }
         if (hasEconomy) {
-            int x = firstX + cardWidth + gap;
+            int x = firstX + (hasGuilds ? cardWidth + gap : 0);
             addRenderableWidget(Button.builder(Component.literal("OUVRIR L'ÉCONOMIE  →"),
                     button -> openEconomy())
                     .bounds(x, firstY + 78, cardWidth, 28).build());
@@ -67,6 +68,16 @@ public final class DashboardScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("FERMER"),
                 button -> onClose())
                 .bounds(left + panelWidth - 104, top + panelHeight - 42, 84, 24).build());
+    }
+
+    @Override
+    public void removed() {
+        // Le serveur suit l'état de lecture du parchemin pour les animations des joueurs proches.
+        // On ferme proprement cet état même lorsqu'on ouvre directement un autre écran Citizen.
+        if (Minecraft.getInstance().getConnection() != null) {
+            PacketDistributor.sendToServer(CloseHubPayload.INSTANCE);
+        }
+        super.removed();
     }
 
     private void openEconomy() {
@@ -115,23 +126,26 @@ public final class DashboardScreen extends Screen {
 
         int cardWidth = Math.min(290, (panelWidth - 72) / 2);
         int gap = 18;
-        int firstX = left + (panelWidth - (cardWidth * 2 + gap)) / 2;
-        int firstY = top + 112;
         boolean hasGuilds = ModList.get().isLoaded("citizenguilds");
         boolean hasEconomy = ModList.get().isLoaded("citizeneconomy");
+        int visibleCount = (hasGuilds ? 1 : 0) + (hasEconomy ? 1 : 0);
+        int cardsWidth = visibleCount * cardWidth + Math.max(0, visibleCount - 1) * gap;
+        int firstX = left + (panelWidth - cardsWidth) / 2;
+        int firstY = top + 112;
 
+        int cardIndex = 0;
         if (hasGuilds) {
-            drawCard(graphics, firstX, firstY, cardWidth, 116,
+            drawCard(graphics, firstX + cardIndex++ * (cardWidth + gap), firstY, cardWidth, 116,
                     "GUILDES", "Gérez votre guilde, vos membres et vos donjons.",
                     "INTERFACE NATIF CITIZEN GUILDS", mouseX, mouseY);
         }
         if (hasEconomy) {
-            drawCard(graphics, firstX + cardWidth + gap, firstY, cardWidth, 116,
+            drawCard(graphics, firstX + cardIndex * (cardWidth + gap), firstY, cardWidth, 116,
                     "ÉCONOMIE", "Banque, entreprises, factures et annonces.",
                     "INTERFACE NATIF CITIZEN ECONOMY", mouseX, mouseY);
         }
 
-        if (!hasGuilds && !hasEconomy) {
+        if (visibleCount == 0) {
             String message = "Aucun module compatible n'est installé.";
             graphics.drawString(font, message, width / 2 - font.width(message) / 2,
                     top + panelHeight / 2, MUTED, false);
