@@ -2,6 +2,7 @@ package fr.citizen.hub.client;
 
 import fr.citizen.hub.CitizenHub;
 import fr.citizen.hub.network.CloseHubPayload;
+import fr.citizen.hub.network.OpenHubPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -28,8 +29,10 @@ public final class DashboardScreen extends Screen {
     private int top;
     private int panelWidth;
     private int panelHeight;
+    private final OpenHubPayload payload;
 
-    public DashboardScreen() {
+    public DashboardScreen(OpenHubPayload payload) {
+        this.payload = payload;
         super(Component.literal("CITIZEN MENU"));
     }
 
@@ -50,8 +53,8 @@ public final class DashboardScreen extends Screen {
         int firstX = left + (panelWidth - (cardWidth * 2 + gap)) / 2;
         int firstY = top + 112;
 
-        boolean hasGuilds = ModList.get().isLoaded("citizenguilds");
-        boolean hasEconomy = ModList.get().isLoaded("citizeneconomy");
+        boolean hasGuilds = hasModule("Guildes", "citizenguilds");
+        boolean hasEconomy = hasModule("Économie", "citizeneconomy");
 
         if (hasGuilds) {
             addRenderableWidget(Button.builder(Component.literal("OUVRIR LES GUILDES  →"),
@@ -126,8 +129,8 @@ public final class DashboardScreen extends Screen {
 
         int cardWidth = Math.min(290, (panelWidth - 72) / 2);
         int gap = 18;
-        boolean hasGuilds = ModList.get().isLoaded("citizenguilds");
-        boolean hasEconomy = ModList.get().isLoaded("citizeneconomy");
+        boolean hasGuilds = hasModule("Guildes", "citizenguilds");
+        boolean hasEconomy = hasModule("Économie", "citizeneconomy");
         int visibleCount = (hasGuilds ? 1 : 0) + (hasEconomy ? 1 : 0);
         int cardsWidth = visibleCount * cardWidth + Math.max(0, visibleCount - 1) * gap;
         int firstX = left + (panelWidth - cardsWidth) / 2;
@@ -154,6 +157,11 @@ public final class DashboardScreen extends Screen {
         graphics.drawString(font, "N  •  OUVRIR CITIZEN MENU", left + 28,
                 top + panelHeight - 34, MUTED, false);
         super.render(graphics, mouseX, mouseY, partialTick);
+    }
+
+    private boolean hasModule(String sectionName, String modId) {
+        return ModList.get().isLoaded(modId)
+                && payload.sections().stream().anyMatch(section -> section.nom().equalsIgnoreCase(sectionName));
     }
 
     private void drawCard(GuiGraphics graphics, int x, int y, int w, int h,
