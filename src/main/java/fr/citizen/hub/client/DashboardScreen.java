@@ -224,7 +224,7 @@ public final class DashboardScreen extends Screen {
             String count = (page + 1) + " / " + pages;
             g.drawString(font, count, center - font.width(count) / 2, top + panelHeight - 43, MUTED, false);
         }
-        g.drawString(font, "N  •  OUVRIR CITIZEN MENU", left + 28,
+        g.drawString(font, "C  •  OUVRIR CITIZEN MENU", left + 28,
                 top + panelHeight - 34, MUTED, false);
     }
 
