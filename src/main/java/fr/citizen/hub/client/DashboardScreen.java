@@ -32,8 +32,8 @@ public final class DashboardScreen extends Screen {
     private final OpenHubPayload payload;
 
     public DashboardScreen(OpenHubPayload payload) {
-        this.payload = payload;
         super(Component.literal("CITIZEN MENU"));
+        this.payload = payload;
     }
 
     @Override
