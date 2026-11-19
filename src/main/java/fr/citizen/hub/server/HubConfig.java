@@ -147,6 +147,9 @@ public final class HubConfig {
         d.sections.add(new Section("Guildes", "minecraft:shield", "citizenguilds", false,
                 "Gérez votre guilde, vos membres, votre réserve commune et vos donjons."));
 
+        d.sections.add(new Section("Boutique", "minecraft:emerald", "citizenboutique", false,
+                "La boutique du royaume : consultez les étals et les articles disponibles.",
+                exe("Ouvrir la boutique", "boutique", "Accéder directement à la boutique du royaume.")));
         d.sections.add(new Section("Économie", "minecraft:gold_ingot", "citizeneconomy", false,
                 "Banque du royaume, entreprises, annonces et factures. La monnaie est le PO (bronze 1, argent 10, or 100, platine 1000).",
                 exe("Ma banque", "ceconomy bank", "Ouvrir ton compte personnel : dépôts, retraits, virements."),
