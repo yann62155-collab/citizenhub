@@ -50,11 +50,12 @@ public final class DashboardScreen extends Screen {
 
         int cardWidth = Math.min(290, (panelWidth - 72) / 2);
         int gap = 18;
-        int firstX = left + (panelWidth - (cardWidth * 2 + gap)) / 2;
-        int firstY = top + 112;
-
         boolean hasGuilds = hasModule("Guildes", "citizenguilds");
         boolean hasEconomy = hasModule("Économie", "citizeneconomy");
+        int visibleCount = (hasGuilds ? 1 : 0) + (hasEconomy ? 1 : 0);
+        int cardsWidth = visibleCount * cardWidth + Math.max(0, visibleCount - 1) * gap;
+        int firstX = left + (panelWidth - cardsWidth) / 2;
+        int firstY = top + 112;
 
         if (hasGuilds) {
             addRenderableWidget(Button.builder(Component.literal("OUVRIR LES GUILDES  →"),
