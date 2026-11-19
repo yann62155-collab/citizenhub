@@ -28,11 +28,24 @@ Faire de CitizenHub le tableau de bord central des modules Citizen pour Minecraf
 - La commande appelle le service serveur qui envoie la vue native au client.
 - Les autorisations des vues sensibles sont contrôlées par Citizen Economy.
 
-### Modules à commande d'ouverture
+### Livre des recettes / Citizen Craft
 
-Le tableau de bord lit les sections déjà filtrées et envoyées par le serveur. Pour les modules qui n'ont pas encore d'adaptateur d'écran public, il propose une tuile uniquement lorsqu'une commande d'ouverture exécutable et non administrative est disponible. Le clic lance directement cette commande. Les commandes de suggestion, les commandes staff et les sections administratives sont exclues.
+- Commande vérifiée : `/craft`.
+- Le serveur envoie le paquet d'ouverture `OpenCraftPayload`.
+- Le client ouvre directement `CraftScreen`.
 
-Un module sans point d'entrée utilisable reste masqué plutôt que d'afficher une tuile inactive ou de prétendre ouvrir une interface inexistante.
+### Citizen Boutique
+
+- Mod ID : `citizenboutique`.
+- Commande vérifiée : `/boutique`.
+- Le serveur transmet les données de la boutique et ouvre `ShopScreen`.
+- Une entrée Boutique est ajoutée automatiquement aux anciennes configurations si le mod est présent.
+
+### Modules volontairement masqués
+
+Quêtes, Réalisme et Éclipses ont des commandes d'information ou des interactions contextuelles, mais pas de menu principal joueur vérifié à ouvrir depuis le tableau de bord. Les afficher comme des raccourcis graphiques serait trompeur. Ils restent accessibles par leurs mécanismes habituels en jeu.
+
+Le tableau de bord n'affiche donc que les intégrations graphiques vérifiées : Guildes, Économie, Livre des recettes et Boutique. CitizenVoice n'est pas modifié ni intégré à ce raccourci ; son menu et ses touches restent autonomes.
 
 ## Interface
 
