@@ -118,16 +118,25 @@ public final class DashboardScreen extends Screen {
                 continue;
             }
 
-            // Ne montrer que les modules qui disposent d'une vraie action d'ouverture.
-            // Les commandes de suggestion et les entrées staff ne sont jamais lancées ici.
-            OpenHubPayload.Entry entry = section.entrees().stream()
-                    .filter(candidate -> !candidate.admin()
-                            && !candidate.suggerer()
-                            && candidate.commande() != null
-                            && !candidate.commande().isBlank())
-                    .findFirst().orElse(null);
-            if (entry != null) {
-                result.add(new ModuleTile(name, section.description(), entry.commande(), Target.COMMAND));
+            // Liste blanche des écrans réellement vérifiés dans les dépôts Citizen.
+            // Une commande d'information (Quêtes, Réalisme, Éclipse, etc.) ne devient
+            // jamais une fausse tuile de menu.
+            if (name.equalsIgnoreCase("Livre des recettes")) {
+                OpenHubPayload.Entry craft = section.entrees().stream()
+                        .filter(candidate -> !candidate.admin() && !candidate.suggerer()
+                                && candidate.commande().equalsIgnoreCase("craft"))
+                        .findFirst().orElse(null);
+                if (craft != null) {
+                    result.add(new ModuleTile(name, section.description(), "craft", Target.COMMAND));
+                }
+            } else if (name.equalsIgnoreCase("Boutique") && ModList.get().isLoaded("citizenboutique")) {
+                OpenHubPayload.Entry shop = section.entrees().stream()
+                        .filter(candidate -> !candidate.admin() && !candidate.suggerer()
+                                && candidate.commande().equalsIgnoreCase("boutique"))
+                        .findFirst().orElse(null);
+                if (shop != null) {
+                    result.add(new ModuleTile(name, section.description(), "boutique", Target.COMMAND));
+                }
             }
         }
         return result;
@@ -142,6 +151,7 @@ public final class DashboardScreen extends Screen {
         return switch (name.toLowerCase()) {
             case "guildes" -> "citizenguilds";
             case "économie", "economie" -> "citizeneconomy";
+            case "boutique" -> "citizenboutique";
             default -> "";
         };
     }
@@ -204,7 +214,7 @@ public final class DashboardScreen extends Screen {
         graphics.drawString(font, "LE ROYAUME, À PORTÉE DE MAIN", left + 28, top + 70, MUTED, false);
         graphics.fill(left + 24, top + 91, left + panelWidth - 24, top + 92, LINE);
 
-        int cardWidth = Math.max(150, (panelWidth - 72) / 2);
+        int cardWidth = Math.max(100, (panelWidth - 64) / 2);
         int first = page * 4;
         for (int slot = 0; slot < 4 && first + slot < tiles.size(); slot++) {
             ModuleTile tile = tiles.get(first + slot);
