@@ -41,6 +41,16 @@ public final class HubServer {
         CommandSourceStack src = player.createCommandSourceStack();
         boolean isAdmin = src.hasPermission(cfg.niveauAdmin);
 
+        // Ajoute la Boutique aux anciennes configurations sans écraser les réglages existants.
+        boolean boutiqueConfigured = cfg.sections.stream().anyMatch(section ->
+                "citizenboutique".equalsIgnoreCase(section.mod));
+        if (!boutiqueConfigured && ModList.get().isLoaded("citizenboutique")) {
+            cfg.sections.add(new HubConfig.Section("Boutique", "minecraft:emerald", "citizenboutique", false,
+                    "La boutique du royaume : consultez les étals et les articles disponibles.",
+                    new HubConfig.Entree("Ouvrir la boutique", "boutique", "executer", false,
+                            "Accéder directement à la boutique du royaume.")));
+        }
+
         List<OpenHubPayload.Section> sections = new ArrayList<>();
         for (int si = 0; si < cfg.sections.size(); si++) {
             HubConfig.Section s = cfg.sections.get(si);
