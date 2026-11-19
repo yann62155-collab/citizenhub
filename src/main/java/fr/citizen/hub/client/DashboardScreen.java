@@ -11,10 +11,16 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Tableau de bord CITIZEN MENU.
- * Les cartes sont affichées uniquement si le module correspondant est présent côté client.
- * Chaque action ouvre le véritable écran du module cible.
+ *
+ * Les modules sont construits depuis la liste déjà filtrée par le serveur.
+ * Les intégrations qui possèdent un écran natif l'ouvrent directement ; les
+ * autres modules utilisent leur première commande d'ouverture exécutable,
+ * sans écran intermédiaire de commandes.
  */
 public final class DashboardScreen extends Screen {
     private static final int BACKGROUND = 0xF0090D16;
@@ -29,7 +35,12 @@ public final class DashboardScreen extends Screen {
     private int top;
     private int panelWidth;
     private int panelHeight;
+    private int page;
+    private List<ModuleTile> tiles = List.of();
     private final OpenHubPayload payload;
+
+    private enum Target { GUILDS, ECONOMY, COMMAND }
+    private record ModuleTile(String title, String description, String command, Target target) {}
 
     public DashboardScreen(OpenHubPayload payload) {
         super(Component.literal("CITIZEN MENU"));
@@ -43,77 +54,132 @@ public final class DashboardScreen extends Screen {
 
     @Override
     protected void init() {
-        panelWidth = Math.min(720, width - 32);
-        panelHeight = Math.min(430, height - 32);
+        panelWidth = Math.min(760, width - 32);
+        panelHeight = Math.min(500, height - 24);
         left = (width - panelWidth) / 2;
         top = (height - panelHeight) / 2;
+        tiles = collectTiles();
+        int pageCount = Math.max(1, (tiles.size() + 3) / 4);
+        page = Math.max(0, Math.min(page, pageCount - 1));
 
-        int cardWidth = Math.min(290, (panelWidth - 72) / 2);
-        int gap = 18;
-        boolean hasGuilds = hasModule("Guildes", "citizenguilds");
-        boolean hasEconomy = hasModule("Économie", "citizeneconomy");
-        int visibleCount = (hasGuilds ? 1 : 0) + (hasEconomy ? 1 : 0);
-        int cardsWidth = visibleCount * cardWidth + Math.max(0, visibleCount - 1) * gap;
-        int firstX = left + (panelWidth - cardsWidth) / 2;
-        int firstY = top + 112;
+        addRenderableWidget(Button.builder(Component.literal("FERMER"), button -> onClose())
+                .bounds(left + panelWidth - 112, top + 22, 84, 24).build());
 
-        if (hasGuilds) {
-            addRenderableWidget(Button.builder(Component.literal("OUVRIR LES GUILDES  →"),
-                    button -> openGuilds())
-                    .bounds(firstX, firstY + 78, cardWidth, 28).build());
-        }
-        if (hasEconomy) {
-            int x = firstX + (hasGuilds ? cardWidth + gap : 0);
-            addRenderableWidget(Button.builder(Component.literal("OUVRIR L'ÉCONOMIE  →"),
-                    button -> openEconomy())
-                    .bounds(x, firstY + 78, cardWidth, 28).build());
+        int first = page * 4;
+        int cardWidth = Math.max(150, (panelWidth - 72) / 2);
+        for (int slot = 0; slot < 4 && first + slot < tiles.size(); slot++) {
+            ModuleTile tile = tiles.get(first + slot);
+            int column = slot % 2;
+            int row = slot / 2;
+            int x = left + 24 + column * (cardWidth + 16);
+            int y = top + 112 + row * 142;
+            addRenderableWidget(Button.builder(Component.literal("OUVRIR  →"), button -> open(tile))
+                    .bounds(x + 14, y + 82, cardWidth - 28, 26).build());
         }
 
-        addRenderableWidget(Button.builder(Component.literal("FERMER"),
-                button -> onClose())
-                .bounds(left + panelWidth - 104, top + panelHeight - 42, 84, 24).build());
+        if (pageCount > 1) {
+            int center = left + panelWidth / 2;
+            addRenderableWidget(Button.builder(Component.literal("← PRÉCÉDENT"), button -> {
+                page = Math.max(0, page - 1);
+                rebuildWidgets();
+            }).bounds(center - 142, top + panelHeight - 52, 118, 24).build());
+            addRenderableWidget(Button.builder(Component.literal("SUIVANT →"), button -> {
+                page = Math.min(pageCount - 1, page + 1);
+                rebuildWidgets();
+            }).bounds(center + 24, top + panelHeight - 52, 118, 24).build());
+        }
+    }
+
+    private List<ModuleTile> collectTiles() {
+        List<ModuleTile> result = new ArrayList<>();
+        for (OpenHubPayload.Section section : payload.sections()) {
+            if (section.admin() || section.nom().equalsIgnoreCase("CitizenAura")) continue;
+
+            String name = section.nom();
+            String modId = payloadModId(name);
+            if (!modId.isEmpty() && !ModList.get().isLoaded(modId)) continue;
+
+            if (name.equalsIgnoreCase("Guildes") && ModList.get().isLoaded("citizenguilds")) {
+                result.add(new ModuleTile(name, section.description(),
+                        "", Target.GUILDS));
+                continue;
+            }
+            if ((name.equalsIgnoreCase("Économie") || name.equalsIgnoreCase("Economie"))
+                    && ModList.get().isLoaded("citizeneconomy")) {
+                result.add(new ModuleTile(name, section.description(),
+                        "ceconomy", Target.ECONOMY));
+                continue;
+            }
+
+            // Ne montrer que les modules qui disposent d'une vraie action d'ouverture.
+            // Les commandes de suggestion et les entrées staff ne sont jamais lancées ici.
+            OpenHubPayload.Entry entry = section.entrees().stream()
+                    .filter(candidate -> !candidate.admin()
+                            && !candidate.suggerer()
+                            && candidate.commande() != null
+                            && !candidate.commande().isBlank())
+                    .findFirst().orElse(null);
+            if (entry != null) {
+                result.add(new ModuleTile(name, section.description(), entry.commande(), Target.COMMAND));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Le modId est transmis indirectement par le serveur dans la section historique.
+     * Les intégrations natives connues sont contrôlées explicitement ci-dessus ; les
+     * modules à commande restent utilisables même si leur code client est facultatif.
+     */
+    private String payloadModId(String name) {
+        return switch (name.toLowerCase()) {
+            case "guildes" -> "citizenguilds";
+            case "économie", "economie" -> "citizeneconomy";
+            default -> "";
+        };
+    }
+
+    private void open(ModuleTile tile) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null) return;
+        switch (tile.target()) {
+            case GUILDS -> openGuilds(minecraft);
+            case ECONOMY -> {
+                onClose();
+                minecraft.player.connection.sendCommand("ceconomy");
+            }
+            case COMMAND -> {
+                onClose();
+                minecraft.player.connection.sendCommand(tile.command().trim());
+            }
+        }
+    }
+
+    private void openGuilds(Minecraft minecraft) {
+        try {
+            // Classe et constructeur vérifiés dans le dépôt Citizen Guilds :
+            // fr.citizen.guilds.GuildManagementScreen() est public et sans argument.
+            Class<?> screenClass = Class.forName("fr.citizen.guilds.GuildManagementScreen");
+            Object instance = screenClass.getConstructor().newInstance();
+            if (!(instance instanceof Screen screen)) {
+                throw new IllegalStateException("GuildManagementScreen n'est pas un écran Minecraft.");
+            }
+            onClose();
+            minecraft.setScreen(screen);
+        } catch (ReflectiveOperationException | LinkageError exception) {
+            CitizenHub.LOGGER.error("Impossible d'ouvrir l'écran natif Citizen Guilds.", exception);
+            minecraft.player.displayClientMessage(
+                    Component.literal("L'interface Guildes est indisponible. Vérifie que Citizen Guilds est installé sur le client.")
+                            .withColor(0xFFFF7777), false);
+        }
     }
 
     @Override
     public void removed() {
-        // Le serveur suit l'état de lecture du parchemin pour les animations des joueurs proches.
-        // On ferme proprement cet état même lorsqu'on ouvre directement un autre écran Citizen.
         if (Minecraft.getInstance().getConnection() != null) {
             PacketDistributor.sendToServer(CloseHubPayload.INSTANCE);
         }
         super.removed();
-    }
-
-    private void openEconomy() {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null) return;
-        onClose();
-        // /ceconomy est le point d'entrée officiel qui ouvre la vue "main" native
-        // de Citizen Economy. Les permissions restent vérifiées par ce mod côté serveur.
-        minecraft.player.connection.sendCommand("ceconomy");
-    }
-
-    private void openGuilds() {
-        Minecraft minecraft = Minecraft.getInstance();
-        try {
-            // Pas de dépendance de compilation : Citizen MENU reste installable seul.
-            // Le constructeur public de GuildManagementScreen ouvre l'interface native
-            // et demande immédiatement son snapshot au serveur.
-            Class<?> screenClass = Class.forName("fr.citizen.guilds.GuildManagementScreen");
-            Object instance = screenClass.getConstructor().newInstance();
-            if (instance instanceof Screen screen) {
-                minecraft.setScreen(screen);
-            } else {
-                throw new IllegalStateException("L'écran Guilds n'est pas un écran Minecraft.");
-            }
-        } catch (ReflectiveOperationException | LinkageError exception) {
-            CitizenHub.LOGGER.error("Impossible d'ouvrir l'écran natif Citizen Guilds.", exception);
-            if (minecraft.player != null) {
-                minecraft.player.displayClientMessage(
-                        Component.literal("L'interface Guildes n'a pas pu être ouverte. Vérifie la version du mod.")
-                                .withColor(0xFFFF7777), false);
-            }
-        }
     }
 
     @Override
@@ -126,59 +192,55 @@ public final class DashboardScreen extends Screen {
         graphics.drawString(font, "CITIZEN", left + 28, top + 22, GOLD, false);
         graphics.drawString(font, "MENU", left + 28, top + 40, WHITE, false);
         graphics.drawString(font, "LE ROYAUME, À PORTÉE DE MAIN", left + 28, top + 70, MUTED, false);
-        graphics.fill(left + 28, top + 91, left + panelWidth - 28, top + 92, LINE);
+        graphics.fill(left + 24, top + 91, left + panelWidth - 24, top + 92, LINE);
 
-        int cardWidth = Math.min(290, (panelWidth - 72) / 2);
-        int gap = 18;
-        boolean hasGuilds = hasModule("Guildes", "citizenguilds");
-        boolean hasEconomy = hasModule("Économie", "citizeneconomy");
-        int visibleCount = (hasGuilds ? 1 : 0) + (hasEconomy ? 1 : 0);
-        int cardsWidth = visibleCount * cardWidth + Math.max(0, visibleCount - 1) * gap;
-        int firstX = left + (panelWidth - cardsWidth) / 2;
-        int firstY = top + 112;
-
-        int cardIndex = 0;
-        if (hasGuilds) {
-            drawCard(graphics, firstX + cardIndex++ * (cardWidth + gap), firstY, cardWidth, 116,
-                    "GUILDES", "Gérez votre guilde, vos membres et vos donjons.",
-                    "INTERFACE NATIF CITIZEN GUILDS", mouseX, mouseY);
-        }
-        if (hasEconomy) {
-            drawCard(graphics, firstX + cardIndex * (cardWidth + gap), firstY, cardWidth, 116,
-                    "ÉCONOMIE", "Banque, entreprises, factures et annonces.",
-                    "INTERFACE NATIF CITIZEN ECONOMY", mouseX, mouseY);
+        int cardWidth = Math.max(150, (panelWidth - 72) / 2);
+        int first = page * 4;
+        for (int slot = 0; slot < 4 && first + slot < tiles.size(); slot++) {
+            ModuleTile tile = tiles.get(first + slot);
+            int column = slot % 2;
+            int row = slot / 2;
+            int x = left + 24 + column * (cardWidth + 16);
+            int y = top + 112 + row * 142;
+            boolean hovered = mouseX >= x && mouseX < x + cardWidth
+                    && mouseY >= y && mouseY < y + 116;
+            drawCard(graphics, tile, x, y, cardWidth, hovered);
         }
 
-        if (visibleCount == 0) {
-            String message = "Aucun module compatible n'est installé.";
+        if (tiles.isEmpty()) {
+            String message = "Aucun module joueur avec une interface disponible.";
             graphics.drawString(font, message, width / 2 - font.width(message) / 2,
-                    top + panelHeight / 2, MUTED, false);
+                    top + panelHeight / 2 - 8, MUTED, false);
+            String hint = "Les modules sans point d'ouverture natif restent masqués.";
+            graphics.drawString(font, hint, width / 2 - font.width(hint) / 2,
+                    top + panelHeight / 2 + 10, MUTED, false);
         }
 
+        int pageCount = Math.max(1, (tiles.size() + 3) / 4);
+        if (pageCount > 1) {
+            String pageText = (page + 1) + " / " + pageCount;
+            graphics.drawString(font, pageText, left + panelWidth / 2 - font.width(pageText) / 2,
+                    top + panelHeight - 43, MUTED, false);
+        }
         graphics.drawString(font, "N  •  OUVRIR CITIZEN MENU", left + 28,
                 top + panelHeight - 34, MUTED, false);
         super.render(graphics, mouseX, mouseY, partialTick);
     }
 
-    private boolean hasModule(String sectionName, String modId) {
-        return ModList.get().isLoaded(modId)
-                && payload.sections().stream().anyMatch(section -> section.nom().equalsIgnoreCase(sectionName));
-    }
-
-    private void drawCard(GuiGraphics graphics, int x, int y, int w, int h,
-                          String title, String description, String footer,
-                          int mouseX, int mouseY) {
-        boolean hovered = mouseX >= x && mouseX < x + w && mouseY >= y && mouseY < y + h;
-        graphics.fill(x, y, x + w, y + h, hovered ? PANEL_HOVER : PANEL);
-        graphics.renderOutline(x, y, w, h, hovered ? GOLD : LINE);
+    private void drawCard(GuiGraphics graphics, ModuleTile tile, int x, int y, int w, boolean hovered) {
+        int cardColor = hovered ? PANEL_HOVER : PANEL;
+        graphics.fill(x, y, x + w, y + 116, cardColor);
+        graphics.renderOutline(x, y, w, 116, hovered ? GOLD : LINE);
         graphics.fill(x + 1, y + 1, x + w - 1, y + 3, GOLD);
-        graphics.drawString(font, title, x + 16, y + 16, GOLD, false);
+        graphics.drawString(font, tile.title().toUpperCase(), x + 16, y + 16, GOLD, false);
 
-        int lineY = y + 39;
-        for (var line : font.split(Component.literal(description), w - 32)) {
-            graphics.drawString(font, line, x + 16, lineY, WHITE, false);
-            lineY += 12;
+        int lineY = y + 40;
+        List<net.minecraft.util.FormattedCharSequence> lines =
+                font.split(Component.literal(tile.description() == null ? "" : tile.description()), w - 32);
+        for (int i = 0; i < Math.min(2, lines.size()); i++) {
+            graphics.drawString(font, lines.get(i), x + 16, lineY, WHITE, false);
+            lineY += 13;
         }
-        graphics.drawString(font, footer, x + 16, y + h - 18, MUTED, false);
+        graphics.drawString(font, "MODULE CITIZEN  •  ACCÈS DIRECT", x + 16, y + 68, MUTED, false);
     }
 }
