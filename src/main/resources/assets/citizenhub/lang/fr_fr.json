@@ -1,3 +1,5 @@
 {
-  "item.citizenhub.parchemin_citizen": "Parchemin Citizen"
+  "item.citizenhub.parchemin_citizen": "Parchemin Citizen",
+  "key.citizenhub.open": "Ouvrir CITIZEN MENU",
+  "key.categories.citizenhub": "CITIZEN MENU"
 }
